@@ -38,3 +38,28 @@ export function getApiErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
   return "Something went wrong.";
 }
+
+/**
+ * Map a FastAPI 422 response to inline form errors: { fieldName: message }.
+ * e.g. { email: "value is not a valid email address", password: "..." }
+ * Returns {} for non-validation errors — fall back to getApiErrorMessage().
+ */
+export function getFieldErrors(error: unknown): Record<string, string> {
+  if (!axios.isAxiosError(error)) return {};
+  const payload: unknown = error.response?.data;
+  if (!payload || typeof payload !== "object" || !("detail" in payload))
+    return {};
+
+  const detail = (payload as ApiValidationError).detail;
+  if (!Array.isArray(detail)) return {};
+
+  const out: Record<string, string> = {};
+  for (const item of detail) {
+    // loc is like ["body", "email"] — keep the field name (strings only)
+    const field = item.loc
+      .filter((part) => typeof part === "string" && part !== "body")
+      .pop();
+    if (field && !(field in out)) out[field] = item.msg;
+  }
+  return out;
+}
