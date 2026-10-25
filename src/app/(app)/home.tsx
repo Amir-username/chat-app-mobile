@@ -1,19 +1,44 @@
-import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
 import { useAuthStore } from "@/stores/authStore";
+import { getMyProfile } from "@/api/profileApi";
+import { getApiErrorMessage } from "@/api/errors";
+import type { ProfileResponse } from "@/types/api";
+import { Avatar } from "@/components/ui/Avatar";
 import { Screen } from "@/components/ui/Screen";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { resolveImageUrl } from "@/utils/config";
 import { theme } from "@/theme";
 
 /**
- * Temporary session test screen — proves the full auth loop works:
- * register → auto-login → session restored on cold start → logout.
- * Phase 3 replaces this with the real chats list.
+ * Home hub — entry point of the signed-in area.
+ * Phase 3: quick navigation to people search and my profile.
+ * The "Chats" row is wired to the chat list in Phase 4.
  */
 export default function HomeScreen() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+  const router = useRouter();
+
+  const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
+
+  // Load the profile once for the greeting (name + avatar). UserOut from the
+  // auth store has no name/image — GET /auth/me/profile has both.
+  useEffect(() => {
+    let cancelled = false;
+    getMyProfile()
+      .then((p) => {
+        if (!cancelled) setProfile(p);
+      })
+      .catch(() => {
+        // Non-critical — greeting falls back to the email
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const onLogout = async () => {
     setLoggingOut(true);
@@ -25,70 +50,148 @@ export default function HomeScreen() {
     }
   };
 
+  const displayName = profile?.name ?? user?.email ?? "there";
+
   return (
     <Screen>
       <View style={styles.header}>
-        <Text style={styles.title}>Signed in</Text>
-        <Text style={styles.subtitle}>
-          The auth loop works. This placeholder is replaced by the chats list in
-          Phase 3.
-        </Text>
+        <Avatar
+          uri={resolveImageUrl(profile?.profile_image)}
+          name={profile?.name}
+          size={56}
+        />
+        <View style={styles.headerText}>
+          <Text style={styles.title}>Hi, {displayName}</Text>
+          <Text style={styles.subtitle}>{user?.email ?? ""}</Text>
+        </View>
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.cardLabel}>Email</Text>
-        <Text style={styles.cardValue}>{user?.email ?? "—"}</Text>
+      <NavRow
+        title="Find people"
+        subtitle="Search users by name and open their profile"
+        onPress={() => router.push("/users")}
+      />
+      <NavRow
+        title="My profile"
+        subtitle="Edit your name, bio and profile photo"
+        onPress={() => router.push("/profile")}
+      />
+      <NavRow
+        title="Chats"
+        subtitle="Private conversations"
+        disabled
+        badge="Phase 4"
+        onPress={() => {}}
+      />
 
-        <Text style={styles.cardLabel}>Roles</Text>
-        <Text style={styles.cardValue}>
-          {user?.roles && user.roles.length > 0
-            ? user.roles.join(", ")
-            : "user"}
-        </Text>
-
-        <Text style={styles.cardLabel}>User ID</Text>
-        <Text style={styles.cardValue}>{String(user?.id ?? "—")}</Text>
-      </View>
-
+      <View style={styles.spacer} />
       <PrimaryButton title="Sign out" onPress={onLogout} loading={loggingOut} />
     </Screen>
   );
 }
 
+interface NavRowProps {
+  title: string;
+  subtitle: string;
+  onPress: () => void;
+  disabled?: boolean;
+  badge?: string;
+}
+
+function NavRow({ title, subtitle, onPress, disabled, badge }: NavRowProps) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      style={({ pressed }) => [
+        styles.row,
+        disabled && styles.rowDisabled,
+        pressed && !disabled && styles.rowPressed,
+      ]}
+    >
+      <View style={styles.rowTextWrap}>
+        <Text style={styles.rowTitle}>{title}</Text>
+        <Text style={styles.rowSubtitle}>{subtitle}</Text>
+      </View>
+      {badge ? (
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>{badge}</Text>
+        </View>
+      ) : (
+        <Text style={styles.chevron}>›</Text>
+      )}
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   header: {
-    marginTop: theme.spacing.xxl,
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: theme.spacing.lg,
     marginBottom: theme.spacing.xl,
   },
+  headerText: {
+    marginLeft: theme.spacing.md,
+    flex: 1,
+  },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: "700",
     color: theme.colors.text,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 14,
     color: theme.colors.textMuted,
-    marginTop: theme.spacing.sm,
+    marginTop: 2,
   },
-  card: {
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.lg,
     borderWidth: 1,
     borderColor: theme.colors.border,
+    borderRadius: theme.radius.lg,
     padding: theme.spacing.lg,
-    marginBottom: theme.spacing.xl,
-  },
-  cardLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: theme.colors.textMuted,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  cardValue: {
-    fontSize: 16,
-    color: theme.colors.text,
-    marginTop: theme.spacing.xs,
     marginBottom: theme.spacing.md,
+  },
+  rowPressed: {
+    borderColor: theme.colors.primary,
+  },
+  rowDisabled: {
+    opacity: 0.6,
+  },
+  rowTextWrap: {
+    flex: 1,
+  },
+  rowTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: theme.colors.text,
+  },
+  rowSubtitle: {
+    fontSize: 13,
+    color: theme.colors.textMuted,
+    marginTop: 2,
+  },
+  chevron: {
+    fontSize: 24,
+    color: theme.colors.textMuted,
+    marginLeft: theme.spacing.sm,
+  },
+  badge: {
+    backgroundColor: "#E0E7FF",
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginLeft: theme.spacing.sm,
+  },
+  badgeText: {
+    color: theme.colors.primary,
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  spacer: {
+    flex: 1,
   },
 });
