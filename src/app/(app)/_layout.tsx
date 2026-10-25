@@ -12,5 +12,12 @@ export default function AppLayout() {
     return <Redirect href="/(auth)/login" />;
   }
 
-  return <Stack screenOptions={{ headerShown: true }} />;
+  return (
+    <Stack screenOptions={{ headerShown: true }}>
+      <Stack.Screen name="home" options={{ title: "Home" }} />
+      <Stack.Screen name="profile" options={{ title: "My profile" }} />
+      <Stack.Screen name="users/index" options={{ title: "Find people" }} />
+      <Stack.Screen name="users/[id]" options={{ title: "Profile" }} />
+    </Stack>
+  );
 }
