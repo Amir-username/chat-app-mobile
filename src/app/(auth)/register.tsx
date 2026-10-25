@@ -13,14 +13,21 @@ import { Screen } from "@/components/ui/Screen";
 import { TextField } from "@/components/ui/TextField";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { getApiErrorMessage, getFieldErrors } from "@/api/errors";
-import { validateEmail, validatePassword } from "@/utils/validation";
+import {
+  validateBio,
+  validateEmail,
+  validateName,
+  validateNewPassword,
+} from "@/utils/validation";
 import { theme } from "@/theme";
 
-export default function LoginScreen() {
-  const login = useAuthStore((s) => s.login);
+export default function RegisterScreen() {
+  const register = useAuthStore((s) => s.register);
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [bio, setBio] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -28,21 +35,30 @@ export default function LoginScreen() {
   const onSubmit = async () => {
     setSubmitError(null);
 
-    // Client-side checks (server rules for login: email format, password 1–128)
+    // Client-side mirror of the server rules (password 8–128, name 1–255, bio ≤ 2000)
     const errors: Record<string, string> = {};
+    const nameError = validateName(name);
+    if (nameError) errors.name = nameError;
     const emailError = validateEmail(email);
     if (emailError) errors.email = emailError;
-    const passwordError = validatePassword(password, 1);
+    const passwordError = validateNewPassword(password);
     if (passwordError) errors.password = passwordError;
+    const bioError = bio.trim() ? validateBio(bio) : null;
+    if (bioError) errors.bio = bioError;
+
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) return;
 
     setSubmitting(true);
     try {
-      await login(email.trim().toLowerCase(), password);
-      // Success → (auth)/_layout redirects into the app automatically
+      await register({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        password,
+        bio: bio.trim(),
+      });
+      // register() auto-logins → (auth)/_layout redirects into the app
     } catch (err) {
-      // 422s map to inline field errors; everything else to the banner
       setFieldErrors(getFieldErrors(err));
       setSubmitError(getApiErrorMessage(err));
     } finally {
@@ -60,9 +76,10 @@ export default function LoginScreen() {
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.title}>Welcome back</Text>
+          <Text style={styles.title}>Create account</Text>
           <Text style={styles.subtitle}>
-            Sign in to continue to your chats.
+            Your display name is what other users will see when chatting with
+            you.
           </Text>
 
           {submitError ? (
@@ -71,6 +88,14 @@ export default function LoginScreen() {
             </View>
           ) : null}
 
+          <TextField
+            label="Display name"
+            placeholder="Alice"
+            value={name}
+            onChangeText={setName}
+            autoCapitalize="words"
+            error={fieldErrors.name}
+          />
           <TextField
             label="Email"
             placeholder="alice@example.com"
@@ -83,23 +108,32 @@ export default function LoginScreen() {
           />
           <TextField
             label="Password"
-            placeholder="Your password"
+            placeholder="8–128 characters"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
             error={fieldErrors.password}
           />
+          <TextField
+            label="Bio (optional)"
+            placeholder="A few words about you"
+            value={bio}
+            onChangeText={setBio}
+            multiline
+            numberOfLines={3}
+            error={fieldErrors.bio}
+          />
 
           <PrimaryButton
-            title="Sign in"
+            title="Create account"
             onPress={onSubmit}
             loading={submitting}
           />
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>No account yet? </Text>
-            <Link href="/(auth)/register" style={styles.footerLink}>
-              Create one
+            <Text style={styles.footerText}>Already have an account? </Text>
+            <Link href="/(auth)/login" style={styles.footerLink}>
+              Sign in
             </Link>
           </View>
         </ScrollView>
