@@ -7,7 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { chatApi } from "@/api";
 import { getApiErrorMessage } from "@/api/errors";
 import { getUserProfile } from "@/api/profileApi";
@@ -23,11 +23,13 @@ import { theme } from "@/theme";
  * required server-side; our axios instance attaches the token anyway).
  *
  * "Start chat" hits POST /private/chats {user_id} — idempotent, so tapping
- * it twice returns the same chat. The real chat screen arrives in Phase 4;
- * for now we confirm the chat id.
+ * it twice returns the same chat. On success we push the conversation
+ * screen /chats/{chatId} (the profile stays in the stack, so Back from the
+ * chat returns here).
  */
 export default function PublicProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
 
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -56,10 +58,7 @@ export default function PublicProfileScreen() {
     setStartingChat(true);
     try {
       const chat = await chatApi.startChat({ user_id: Number(profile.id) });
-      Alert.alert(
-        "Chat ready",
-        `Chat #${chat.id} with ${profile.name} is set up. The conversation screen lands in Phase 4.`,
-      );
+      router.push(`/chats/${chat.id}`);
     } catch (e) {
       Alert.alert("Could not start chat", getApiErrorMessage(e));
     } finally {

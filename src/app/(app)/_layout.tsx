@@ -18,6 +18,8 @@ export default function AppLayout() {
       <Stack.Screen name="profile" options={{ title: "My profile" }} />
       <Stack.Screen name="users/index" options={{ title: "Find people" }} />
       <Stack.Screen name="users/[id]" options={{ title: "Profile" }} />
+      <Stack.Screen name="chats/index" options={{ title: "Chats" }} />
+      <Stack.Screen name="chats/[id]" options={{ title: "Chat" }} />
     </Stack>
   );
 }

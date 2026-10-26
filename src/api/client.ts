@@ -30,6 +30,15 @@ export function setOnUnauthorized(handler: UnauthorizedHandler): void {
   onUnauthorized = handler;
 }
 
+/**
+ * Invoke the registered handler programmatically.
+ * The WebSocket layer uses this when a 4001 close can't be recovered
+ * (refresh token expired/revoked) — the auth store then forces logout.
+ */
+export function notifyUnauthorized(): void {
+  onUnauthorized?.();
+}
+
 export const api = axios.create({
   baseURL: API_URL,
   timeout: 15_000,

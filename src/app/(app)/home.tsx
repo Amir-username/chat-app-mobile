@@ -79,11 +79,8 @@ export default function HomeScreen() {
       <NavRow
         title="Chats"
         subtitle="Private conversations"
-        disabled
-        badge="Phase 4"
-        onPress={() => {}}
+        onPress={() => router.push("/chats")}
       />
-
       <View style={styles.spacer} />
       <PrimaryButton title="Sign out" onPress={onLogout} loading={loggingOut} />
     </Screen>
