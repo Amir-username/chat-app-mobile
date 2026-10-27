@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import { useAuthStore } from "@/stores/authStore";
 import {
   getMyProfile,
   updateMyProfile,
@@ -25,7 +26,7 @@ import { resolveImageUrl } from "@/utils/config";
 import { theme } from "@/theme";
 
 /**
- * My profile — view + edit.
+ * Profile tab — view + edit my profile, and sign out.
  *
  * Endpoints used:
  *  - GET  /auth/me/profile          → ProfileResponse
@@ -36,9 +37,12 @@ import { theme } from "@/theme";
  *    returns the updated ProfileResponse with the new relative image path.
  */
 export default function MyProfileScreen() {
+  const logout = useAuthStore((s) => s.logout);
+
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   // Edit mode
   const [editing, setEditing] = useState(false);
@@ -140,6 +144,16 @@ export default function MyProfileScreen() {
     }
   };
 
+  const onLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await logout();
+      // Success → (app)/_layout redirects to login
+    } finally {
+      setLoggingOut(false);
+    }
+  };
+
   if (loading) {
     return (
       <Screen>
@@ -234,6 +248,14 @@ export default function MyProfileScreen() {
         </View>
 
         <PrimaryButton title="Edit profile" onPress={startEditing} />
+
+        <View style={styles.footer}>
+          <PrimaryButton
+            title="Sign out"
+            onPress={onLogout}
+            loading={loggingOut}
+          />
+        </View>
       </ScrollView>
     </Screen>
   );
@@ -242,6 +264,9 @@ export default function MyProfileScreen() {
 const styles = StyleSheet.create({
   center: {
     marginTop: theme.spacing.xxl,
+  },
+  footer: {
+    marginTop: theme.spacing.xl,
   },
   content: {
     paddingBottom: theme.spacing.xl,

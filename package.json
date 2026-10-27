@@ -4,6 +4,7 @@
   "main": "expo-router/entry",
   "dependencies": {
     "@expo/metro-runtime": "~58.0.15",
+    "@expo/vector-icons": "^15.0.2",
     "@tanstack/react-query": "^5.104.5",
     "axios": "^1.20.0",
     "expo": "~58.0.19",

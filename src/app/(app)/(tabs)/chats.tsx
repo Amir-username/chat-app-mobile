@@ -19,7 +19,7 @@ import { formatChatTimestamp } from "@/utils/datetime";
 import { theme } from "@/theme";
 
 /**
- * Private chats list — GET /private/chats.
+ * Chats tab — private chats list (GET /private/chats).
  * ⚠ Sorted by chat CREATION date (backend quirk), not by last message time —
  * the timestamp shown is last_message_at when present, else created_at.
  */
@@ -99,7 +99,7 @@ export default function ChatsScreen() {
             />
           ) : (
             <Text style={styles.empty}>
-              No conversations yet.{"\n"}Find someone in “Find people” and tap
+              No conversations yet.{"\n"}Find someone in the Search tab and tap
               “Start chat”.
             </Text>
           )
