@@ -14,6 +14,7 @@ import { theme } from "@/theme";
 export default function TabsLayout() {
   return (
     <Tabs
+      initialRouteName="chats"
       screenOptions={{
         headerShown: true,
         headerShadowVisible: false,

@@ -9,7 +9,7 @@ export default function Index() {
   const status = useAuthStore((s) => s.status);
 
   if (status === "authenticated") {
-    return <Redirect href="/(app)/home" />;
+    return <Redirect href="/chats" />;
   }
-  return <Redirect href="/(app)/(tabs)" />;
+  return <Redirect href="/(auth)/login" />;
 }

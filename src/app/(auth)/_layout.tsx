@@ -9,7 +9,7 @@ export default function AuthLayout() {
   const status = useAuthStore((s) => s.status);
 
   if (status === "authenticated") {
-    return <Redirect href="/(app)/(tabs)" />;
+    return <Redirect href="/chats" />;
   }
 
   return <Stack screenOptions={{ headerShown: false }} />;
