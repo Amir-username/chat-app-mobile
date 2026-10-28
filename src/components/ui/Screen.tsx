@@ -8,7 +8,7 @@ interface ScreenProps {
   style?: ViewStyle;
 }
 
-/** Safe-area-wrapped screen container with standard padding. */
+/** Safe-area-wrapped screen container with standard padding (dark bg). */
 export function Screen({ children, style }: ScreenProps) {
   return (
     <SafeAreaView style={styles.safe}>

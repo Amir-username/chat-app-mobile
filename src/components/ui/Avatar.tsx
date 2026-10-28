@@ -23,8 +23,9 @@ function initialsOf(name?: string | null): string {
 }
 
 /**
- * Round avatar with an initials fallback.
- * Used by: search results, public profile, my profile, home header.
+ * Round avatar with an initials fallback (dark edition — subtle ring,
+ * indigo-tinted fallback instead of the old light indigo-100).
+ * Used by: search results, public profile, my profile, chats list.
  */
 export function Avatar({ uri, name, size = 48 }: AvatarProps) {
   const radius = size / 2;
@@ -33,7 +34,14 @@ export function Avatar({ uri, name, size = 48 }: AvatarProps) {
     return (
       <Image
         source={{ uri }}
-        style={{ width: size, height: size, borderRadius: radius }}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: radius,
+          borderWidth: 1,
+          borderColor: theme.colors.borderSoft,
+          backgroundColor: theme.colors.surface,
+        }}
       />
     );
   }
@@ -54,12 +62,14 @@ export function Avatar({ uri, name, size = 48 }: AvatarProps) {
 
 const styles = StyleSheet.create({
   fallback: {
-    backgroundColor: "#E0E7FF", // indigo-100 — tinted companion of theme.colors.primary
+    backgroundColor: theme.colors.primarySoft,
+    borderWidth: 1,
+    borderColor: theme.colors.borderSoft,
     alignItems: "center",
     justifyContent: "center",
   },
   initials: {
-    color: theme.colors.primary,
+    color: theme.colors.primaryLight,
     fontWeight: "700",
   },
 });
