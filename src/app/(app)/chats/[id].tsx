@@ -19,6 +19,7 @@ import { ChatInputBar } from "@/components/chat/ChatInputBar";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import type { ReplyPreview } from "@/types/api";
 import { theme } from "@/theme";
+import { SwipeableMessageRow } from "@/components/chat/SwipeableMessageRow";
 
 /**
  * Private conversation screen.
@@ -141,11 +142,18 @@ export default function ChatScreen() {
                   inverted
                   keyExtractor={(m) => m.key}
                   renderItem={({ item }) => (
-                    <MessageBubble
-                      message={item}
-                      isMine={String(item.sender_id) === String(myId ?? "")}
-                      onLongPress={onBubbleLongPress}
-                    />
+                    <SwipeableMessageRow
+                      onSwipeReply={() => {
+                        // Only server messages have a real id to reference
+                        if (item.id > 0) setReplyTo(item);
+                      }}
+                    >
+                      <MessageBubble
+                        message={item}
+                        isMine={String(item.sender_id) === String(myId ?? "")}
+                        onLongPress={onBubbleLongPress}
+                      />
+                    </SwipeableMessageRow>
                   )}
                   onEndReached={() => void chat.loadOlder()}
                   onEndReachedThreshold={0.4}
