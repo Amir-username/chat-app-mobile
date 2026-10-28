@@ -2,12 +2,14 @@ import { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 import { Link } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "@/stores/authStore";
 import { Screen } from "@/components/ui/Screen";
 import { TextField } from "@/components/ui/TextField";
@@ -16,6 +18,12 @@ import { getApiErrorMessage, getFieldErrors } from "@/api/errors";
 import { validateEmail, validatePassword } from "@/utils/validation";
 import { theme } from "@/theme";
 
+/**
+ * Login — Dark Glow edition.
+ * Glass fields with icons, glowing logo chip, error banner for
+ * network/server failures and inline 422 field errors, bottom pill
+ * to switch to register. Logic is unchanged.
+ */
 export default function LoginScreen() {
   const login = useAuthStore((s) => s.login);
 
@@ -60,6 +68,9 @@ export default function LoginScreen() {
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
         >
+          <View style={styles.logoChip}>
+            <Ionicons name="chatbubbles" size={30} color="#FFFFFF" />
+          </View>
           <Text style={styles.title}>Welcome back</Text>
           <Text style={styles.subtitle}>
             Sign in to continue to your chats.
@@ -79,7 +90,15 @@ export default function LoginScreen() {
             keyboardType="email-address"
             autoCapitalize="none"
             autoComplete="email"
+            autoCorrect={false}
             error={fieldErrors.email}
+            icon={
+              <Ionicons
+                name="mail-outline"
+                size={19}
+                color={theme.colors.textMuted}
+              />
+            }
           />
           <TextField
             label="Password"
@@ -87,7 +106,15 @@ export default function LoginScreen() {
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            toggleable
             error={fieldErrors.password}
+            icon={
+              <Ionicons
+                name="lock-closed-outline"
+                size={19}
+                color={theme.colors.textMuted}
+              />
+            }
           />
 
           <PrimaryButton
@@ -96,12 +123,19 @@ export default function LoginScreen() {
             loading={submitting}
           />
 
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>No account yet? </Text>
-            <Link href="/(auth)/register" style={styles.footerLink}>
-              Create one
-            </Link>
-          </View>
+          <Link href="/(auth)/register" asChild>
+            <Pressable
+              style={({ pressed }) => [
+                styles.switchPill,
+                pressed && styles.switchPillPressed,
+              ]}
+            >
+              <Text style={styles.switchText}>
+                New here?{" "}
+                <Text style={styles.switchBold}>Create an account</Text>
+              </Text>
+            </Pressable>
+          </Link>
         </ScrollView>
       </KeyboardAvoidingView>
     </Screen>
@@ -111,32 +145,74 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   scroll: { flexGrow: 1, justifyContent: "center" },
+  logoChip: {
+    width: 62,
+    height: 62,
+    borderRadius: 20,
+    backgroundColor: theme.colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+    marginBottom: theme.spacing.lg,
+    borderWidth: 1,
+    borderColor: "rgba(129,140,248,0.35)",
+    ...Platform.select({
+      ios: {
+        shadowColor: theme.colors.primaryGlow,
+        shadowOpacity: 0.6,
+        shadowRadius: 24,
+        shadowOffset: { width: 0, height: 0 },
+      },
+      android: { elevation: 10 },
+      default: {},
+    }),
+  },
   title: {
-    fontSize: 28,
-    fontWeight: "700",
+    fontSize: 26,
+    fontWeight: "800",
+    letterSpacing: -0.5,
     color: theme.colors.text,
+    textAlign: "center",
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 14.5,
     color: theme.colors.textMuted,
-    marginTop: theme.spacing.xs,
+    marginTop: theme.spacing.sm,
     marginBottom: theme.spacing.xl,
+    textAlign: "center",
   },
   errorBanner: {
     backgroundColor: theme.colors.dangerBg,
+    borderWidth: 1,
+    borderColor: theme.colors.dangerBorder,
     borderRadius: theme.radius.md,
     padding: theme.spacing.md,
     marginBottom: theme.spacing.lg,
   },
   errorBannerText: {
     color: theme.colors.danger,
-    fontSize: 14,
+    fontSize: 13.5,
+    lineHeight: 19,
   },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "center",
+  switchPill: {
+    alignSelf: "center",
     marginTop: theme.spacing.xl,
+    backgroundColor: theme.colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: theme.colors.borderSoft,
+    borderRadius: 999,
+    paddingHorizontal: 18,
+    paddingVertical: 11,
   },
-  footerText: { color: theme.colors.textMuted, fontSize: 14 },
-  footerLink: { color: theme.colors.primary, fontSize: 14, fontWeight: "600" },
+  switchPillPressed: {
+    backgroundColor: theme.colors.primarySoft,
+  },
+  switchText: {
+    color: theme.colors.textMuted,
+    fontSize: 13,
+  },
+  switchBold: {
+    color: theme.colors.primaryLight,
+    fontWeight: "700",
+  },
 });

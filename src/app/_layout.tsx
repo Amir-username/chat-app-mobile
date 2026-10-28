@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useAuthStore } from "@/stores/authStore";
 import { theme } from "@/theme";
 
@@ -9,6 +10,8 @@ import { theme } from "@/theme";
  * While hydrating we show a splash spinner; after that the group layouts
  * ((auth)/_layout and (app)/_layout) enforce the authenticated/unauthenticated
  * redirects, and app/index.tsx picks the correct entry screen.
+ *
+ * Dark Glow: light (white) status-bar content everywhere + navy splash.
  */
 export default function RootLayout() {
   const hydrate = useAuthStore((s) => s.hydrate);
@@ -21,17 +24,21 @@ export default function RootLayout() {
   if (status === "idle" || status === "hydrating") {
     return (
       <View style={styles.splash}>
+        <StatusBar style="light" />
         <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(app)" />
-    </Stack>
+    <>
+      <StatusBar style="light" />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(app)" />
+      </Stack>
+    </>
   );
 }
 

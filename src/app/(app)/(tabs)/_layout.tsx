@@ -3,7 +3,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { theme } from "@/theme";
 
 /**
- * Bottom tab bar — the signed-in hub.
+ * Bottom tab bar — the signed-in hub (dark edition: navy bar, hairline
+ * divider, indigo-400 active tint).
  *  - Chats  → private conversations list
  *  - Search → find people by name
  *  - Profile → view / edit my profile (+ sign out)
@@ -18,16 +19,20 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: true,
         headerShadowVisible: false,
+        headerStyle: {
+          backgroundColor: theme.colors.background,
+        },
+        headerTintColor: theme.colors.text,
         headerTitleStyle: {
           fontWeight: "700",
           fontSize: 17,
           color: theme.colors.text,
         },
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.textMuted,
+        tabBarActiveTintColor: theme.colors.primaryLight,
+        tabBarInactiveTintColor: theme.colors.tabInactive,
         tabBarStyle: {
-          backgroundColor: theme.colors.surface,
-          borderTopColor: theme.colors.border,
+          backgroundColor: theme.colors.background,
+          borderTopColor: theme.colors.borderSoft,
         },
         tabBarLabelStyle: {
           fontSize: 11,

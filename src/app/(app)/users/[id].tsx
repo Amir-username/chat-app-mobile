@@ -142,14 +142,16 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   verifiedChip: {
-    backgroundColor: "#E0E7FF",
+    backgroundColor: theme.colors.primarySoft,
+    borderWidth: 1,
+    borderColor: theme.colors.borderSoft,
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 4,
     marginTop: theme.spacing.sm,
   },
   verifiedText: {
-    color: theme.colors.primary,
+    color: theme.colors.primaryLight,
     fontSize: 12,
     fontWeight: "700",
   },

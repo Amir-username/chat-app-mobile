@@ -1,5 +1,14 @@
 import { Redirect, Stack } from "expo-router";
 import { useAuthStore } from "@/stores/authStore";
+import { theme } from "@/theme";
+
+/** Shared dark header styles for the pushed detail screens. */
+const headerStyles = {
+  headerStyle: { backgroundColor: theme.colors.background },
+  headerTintColor: theme.colors.text,
+  headerTitleStyle: { fontWeight: "700" as const, fontSize: 17 },
+  headerShadowVisible: false,
+};
 
 /**
  * Protected app group.
@@ -23,11 +32,11 @@ export default function AppLayout() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen
         name="users/[id]"
-        options={{ headerShown: true, title: "Profile" }}
+        options={{ headerShown: true, title: "Profile", ...headerStyles }}
       />
       <Stack.Screen
         name="chats/[id]"
-        options={{ headerShown: true, title: "Chat" }}
+        options={{ headerShown: true, title: "Chat", ...headerStyles }}
       />
     </Stack>
   );

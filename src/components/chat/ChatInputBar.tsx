@@ -56,6 +56,7 @@ export function ChatInputBar({
           onChangeText={setText}
           placeholder="Message…"
           placeholderTextColor={theme.colors.textMuted}
+          keyboardAppearance="dark"
           multiline
           maxLength={5000}
         />
