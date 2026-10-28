@@ -255,7 +255,7 @@ export default function MyProfileScreen() {
             onPress={onLogout}
             loading={loggingOut}
             variant="danger"
-          />{" "}
+          />
         </View>
       </ScrollView>
     </Screen>

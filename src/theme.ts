@@ -8,7 +8,7 @@ export const theme = {
     // Accents
     primary: "#6366F1", // indigo-500 — buttons, active states
     primaryDark: "#4F46E5", // pressed state
-    primaryLight: "#818CF8", // links, active tab icon on dark
+    primaryLight: "#818CF8", // links, focus border, active tab icon on dark
     primarySoft: "rgba(99,102,241,0.16)", // tinted fills (chips, focus)
     primaryGlow: "rgba(99,102,241,0.55)", // iOS shadow glow color
 
@@ -24,6 +24,7 @@ export const theme = {
     // Text
     text: "#F1F5F9",
     textMuted: "#8A94A8",
+    placeholder: "#5B6478", // input placeholders — dimmer than labels
 
     // Feedback
     danger: "#F87171",
@@ -38,4 +39,3 @@ export const theme = {
   radius: { sm: 8, md: 14, lg: 18 },
   spacing: { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 },
 } as const;
-

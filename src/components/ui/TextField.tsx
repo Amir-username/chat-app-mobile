@@ -1,5 +1,14 @@
-import { forwardRef, useState, type ReactNode } from "react";
 import {
+  forwardRef,
+  useEffect,
+  useRef,
+  useState,
+  type ComponentRef,
+  type ReactNode,
+} from "react";
+import {
+  Animated,
+  Easing,
   Platform,
   Pressable,
   StyleSheet,
@@ -22,12 +31,22 @@ interface TextFieldProps extends TextInputProps {
 }
 
 /**
- * Dark "glass" text input:
- *  - translucent fill + hairline border, indigo focus ring w/ soft glow
+ * Dark "glass" text input — Dark Glow focus edition:
+ *  - translucent fill + hairline border
+ *  - on focus: brighter indigo border, an animated 4px glow ring hugging the
+ *    box, plus a soft diffuse halo fading out around it (mimics the
+ *    `box-shadow: 0 0 0 4px rgba(99,102,241,.18)` spec from the HTML preview)
+ *  - label brightens while focused; error state turns the whole glow red
  *  - optional leading icon and password reveal toggle
  *  - inline error styling for API 422 / client validation
+ *
+ * The ring/halo are real Views (not box-shadow) so the effect also renders on
+ * Android and web, where shadow* props are ignored.
  */
-export const TextField = forwardRef<TextInput, TextFieldProps>(
+export const TextField = forwardRef<
+  ComponentRef<typeof TextInput>,
+  TextFieldProps
+>(
   (
     {
       label,
@@ -44,49 +63,101 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(
     const [focused, setFocused] = useState(false);
     const [revealed, setRevealed] = useState(false);
 
+    // 0 → idle, 1 → glowing. Drives ring + halo fade in/out.
+    const glow = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+      Animated.timing(glow, {
+        toValue: focused ? 1 : 0,
+        duration: 180,
+        easing: Easing.out(Easing.quad),
+        // opacity supports the native driver; on web fall back to JS
+        useNativeDriver: Platform.OS !== "web",
+      }).start();
+    }, [focused, glow]);
+
+    const hasError = !!error;
+
     return (
       <View style={styles.wrap}>
-        <Text style={styles.label}>{label}</Text>
-        <View
-          style={[
-            styles.box,
-            multiline && styles.boxMultiline,
-            focused && styles.boxFocused,
-            error ? styles.boxError : null,
-          ]}
+        <Text
+          style={[styles.label, focused && !hasError && styles.labelFocused]}
         >
-          {icon ? <View style={styles.icon}>{icon}</View> : null}
-          <TextInput
-            ref={ref}
-            {...rest}
-            style={[styles.input, multiline && styles.inputMultiline, style]}
-            placeholderTextColor={theme.colors.textMuted}
-            keyboardAppearance="dark"
-            multiline={multiline}
-            secureTextEntry={secureTextEntry && !revealed}
-            onFocus={(e) => {
-              setFocused(true);
-              rest.onFocus?.(e);
-            }}
-            onBlur={(e) => {
-              setFocused(false);
-              rest.onBlur?.(e);
-            }}
+          {label}
+        </Text>
+
+        <View style={styles.fieldArea}>
+          {/* soft diffuse halo, fades in on focus */}
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.halo,
+              {
+                opacity: glow,
+                backgroundColor: hasError
+                  ? "rgba(239,68,68,0.10)"
+                  : "rgba(99,102,241,0.10)",
+              },
+            ]}
           />
-          {toggleable && secureTextEntry ? (
-            <Pressable
-              onPress={() => setRevealed((v) => !v)}
-              hitSlop={8}
-              style={styles.eye}
-            >
-              <Ionicons
-                name={revealed ? "eye-off" : "eye"}
-                size={20}
-                color={theme.colors.textMuted}
-              />
-            </Pressable>
-          ) : null}
+          {/* crisp 4px glow ring hugging the input */}
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.ring,
+              {
+                opacity: glow,
+                borderColor: hasError
+                  ? "rgba(239,68,68,0.28)"
+                  : "rgba(99,102,241,0.22)",
+              },
+            ]}
+          />
+
+          <View
+            style={[
+              styles.box,
+              multiline && styles.boxMultiline,
+              focused && styles.boxFocused,
+              hasError ? styles.boxError : null,
+            ]}
+          >
+            {icon ? <View style={styles.icon}>{icon}</View> : null}
+            <TextInput
+              ref={ref}
+              {...rest}
+              style={[styles.input, multiline && styles.inputMultiline, style]}
+              placeholderTextColor={theme.colors.placeholder}
+              keyboardAppearance="dark"
+              multiline={multiline}
+              secureTextEntry={secureTextEntry && !revealed}
+              onFocus={(e) => {
+                setFocused(true);
+                rest.onFocus?.(e);
+              }}
+              onBlur={(e) => {
+                setFocused(false);
+                rest.onBlur?.(e);
+              }}
+            />
+            {toggleable && secureTextEntry ? (
+              <Pressable
+                onPress={() => setRevealed((v) => !v)}
+                hitSlop={8}
+                style={styles.eye}
+              >
+                <Ionicons
+                  name={revealed ? "eye-off" : "eye"}
+                  size={20}
+                  color={
+                    focused ? theme.colors.primaryLight : theme.colors.textMuted
+                  }
+                />
+              </Pressable>
+            ) : null}
+          </View>
         </View>
+
         {error ? <Text style={styles.error}>{error}</Text> : null}
       </View>
     );
@@ -104,6 +175,31 @@ const styles = StyleSheet.create({
     color: theme.colors.textMuted,
     marginBottom: theme.spacing.sm,
   },
+  labelFocused: {
+    color: theme.colors.primaryLight,
+  },
+  fieldArea: {
+    position: "relative",
+  },
+  // soft diffuse aura — extends 12px beyond the box on every side
+  halo: {
+    position: "absolute",
+    top: -12,
+    left: -12,
+    right: -12,
+    bottom: -12,
+    borderRadius: theme.radius.md + 12,
+  },
+  // crisp ring hugging the box, 4px thick (box-shadow: 0 0 0 4px equivalent)
+  ring: {
+    position: "absolute",
+    top: -4,
+    left: -4,
+    right: -4,
+    bottom: -4,
+    borderWidth: 4,
+    borderRadius: theme.radius.md + 4,
+  },
   box: {
     flexDirection: "row",
     alignItems: "center",
@@ -117,13 +213,13 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   boxFocused: {
-    borderColor: theme.colors.primary,
+    borderColor: theme.colors.primaryLight,
     backgroundColor: theme.colors.primarySoft,
     ...Platform.select({
       ios: {
         shadowColor: theme.colors.primaryGlow,
-        shadowOpacity: 0.45,
-        shadowRadius: 14,
+        shadowOpacity: 0.5,
+        shadowRadius: 16,
         shadowOffset: { width: 0, height: 0 },
       },
       default: {},

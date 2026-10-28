@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
   },
   switchPill: {
     alignSelf: "center",
-    marginTop: theme.spacing.xl,
+    marginTop: 38, // extra breathing room below the CTA
     backgroundColor: theme.colors.surfaceAlt,
     borderWidth: 1,
     borderColor: theme.colors.borderSoft,
